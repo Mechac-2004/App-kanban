@@ -1,20 +1,60 @@
 import { useState } from "react";
-import "./style.css"; // Import du fichier CSS
+import { useNavigate } from "react-router-dom";
+import "./style.css";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
-    username: "",
+    name: "",
     email: "",
     password: "",
   });
+
+  const navigate = useNavigate(); // Hook pour la navigation
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form Submitted:", formData);
+    
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Erreur lors de l\'inscription');
+      }
+  
+      const data = await res.json();
+      console.log('Inscription réussie:', data);
+      
+      // Et dans AppKanban.tsx
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+          // Redirection vers la page de connexion après inscription
+          navigate('/connexion', { 
+          state: { 
+            registrationSuccess: true,
+            email: formData.email 
+          } 
+        });
+      }
+      
+      
+    } catch (error) {
+      console.error('Erreur:', error);
+      setErrors({ 
+        server: [error instanceof Error ? error.message : 'Erreur inconnue'] 
+      });
+    }
   };
 
   return (
@@ -25,11 +65,12 @@ const SignUp = () => {
         <label>Nom d'utilisateur</label>
         <input
           type="text"
-          name="username"
-          value={formData.username}
+          name="name"
+          value={formData.name}
           onChange={handleChange}
           required
         />
+        {errors.name && <p>{errors.name[0]}</p>}
 
         <label>Email</label>
         <input
@@ -48,6 +89,8 @@ const SignUp = () => {
           onChange={handleChange}
           required
         />
+
+        {errors.server && <p className="error">{errors.server[0]}</p>}
 
         <button type="submit">S'inscrire</button>
       </form>
