@@ -88,3 +88,16 @@ body {
   .login-form button:hover {
     background-color: #218838;
   }
+
+  .error {
+    color: #ff4444;
+    margin: 10px 0;
+  }
+  
+  .success-message {
+    color: #00C851;
+    background: #e8f5e9;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }

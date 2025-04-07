@@ -1,0 +1,44 @@
+/* Réinitialisation de base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Styles globaux pour l'ensemble de l'application */
+html, body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0; /* Remplace par la couleur de ton choix */
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* Conteneur de la racine */
+#root {
+  background-color: #000;  /* Fond noir */
+  color: white;            /* Texte blanc */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header et espace pour le contenu principal */
+.main-content {
+  padding-top: 70px; /* Compense la hauteur du Header */
+  padding: 20px;
+  flex-grow: 1;
+  overflow-x: auto;
+}
+
+/* Style pour les boutons, etc. */
+button {
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+}
+
+button:hover {
+  opacity: 0.8;
+}
