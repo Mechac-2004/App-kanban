@@ -1,26 +1,19 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
 
-const API_URL = "http://127.0.0.1:8000/api/columns";
+const apiUrl = 'http://localhost:8000/api/columns';
 
-function KanbanBoard() {
-    const [columns, setColumns] = useState([]);
+// Exemple de fonction pour récupérer les colonnes
+const fetchColumns = async () => {
+    const token = localStorage.getItem('token'); 
 
-    useEffect(() => {
-        axios.get(API_URL)
-            .then(response => setColumns(response.data))
-            .catch(error => console.error("Erreur:", error));
-    }, []);
-
-    return (
-        <div>
-            {columns.map(column => (
-                <div key={column.id}>
-                    <h2>{column.name}</h2>
-                </div>
-            ))}
-        </div>
-    );
-}
-
-export default KanbanBoard;
+    try {
+        const response = await axios.get(apiUrl, {
+            headers: {
+                Authorization: `Bearer ${token}`, 
+            }
+        });
+        console.log(response.data);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des colonnes', error);
+    }
+};
