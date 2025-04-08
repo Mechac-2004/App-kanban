@@ -1,13 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Signup from "./components/Auth/inscription/Inscription";
 import Login from "./components/Auth/connexion/Login";
- // Ajoute Kanban si tu veux l'afficher dans les routes protégées
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import Header from "./components/Header";
 import Board from "./components/Board";
-import "./index.css";
-import "./App.css"; // Assure-toi d'importer le fichier CSS avec les styles classiques
 
+import "./App.css";
 function AppContent() {
   const location = useLocation();
   console.log(location.pathname);  // Log de la route actuelle
@@ -16,10 +14,10 @@ function AppContent() {
 
   return (
     <div id="root">
-      {/* Affichage conditionnel du Header et Board */}
+      { /*Affichage conditionnel du Header et Board*/}
       {!hideHeader && <Header />}
       
-      {/* Le contenu principal */}
+      {/*Le contenu principal */}
       <main className={hideHeader ? "" : "main-content"}>
         {/* Affiche Board uniquement si on n'est pas sur la page d'inscription ou de connexion */}
         {!hideHeader && <Board />}
@@ -29,10 +27,10 @@ function AppContent() {
           <Route path="/inscription" element={<Signup />} />
           <Route path="/connexion" element={<Login />} />
           <Route
-            path="/index"
+            path="./index"
             element={
               <ProtectedRoute>
-                <Kanban />
+                <Board />
               </ProtectedRoute>
             }
           />

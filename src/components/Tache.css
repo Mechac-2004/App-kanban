@@ -1,0 +1,63 @@
+/* Style des tâches */
+.tache-container {
+  background-color: #c0aaff;
+  color: white; 
+  padding: 0.80rem; 
+  border-radius: 0.5rem; 
+  position: relative; 
+  cursor: pointer; 
+  transition: background 0.2s ease, transform 0.2s ease; 
+}
+.tache-container:hover {
+  background-color: #b38bf0; /* Fond légèrement plus clair lors du survol */
+  transform: scale(1.02); /* Légère mise en surbrillance lors du survol */
+}
+
+/* Style du bouton de suppression */
+.delete-button {
+  position: absolute; /* Position absolue pour être dans le coin supérieur droit */
+  top: 5px;
+  right: 5px;
+  background: none; /* Aucune couleur de fond */
+  border: none; /* Aucune bordure */
+  cursor: pointer; /* Curseur de souris pour l'interactivité */
+  color: #ff6f61; /* Couleur rouge corail pour le bouton de suppression */
+  font-size: 1.1rem; /* Taille légèrement plus grande pour une meilleure visibilité */
+  transition: color 0.3s ease, transform 0.1s ease-in-out; /* Transition pour les animations */
+}
+
+.delete-button:hover {
+  color: #ff3b30; /* Rouge plus intense lors du survol */
+  transform: scale(1.2); /* Effet de zoom pour rendre le bouton plus visible */
+}
+
+/* Style de l'input lors de l'édition */
+.task-edit-input {
+  width: 100%; /* Prendre toute la largeur disponible */
+  background-color: #8f98e6; /* Fond dynamique et attractif pour l'input */
+  border: none; /* Pas de bordure */
+  color: white; /* Texte en blanc */
+  padding: 0.4rem; /* Espacement interne */
+  border-radius: 0.4rem; /* Bords arrondis */
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease; /* Transition douce lors de l'interaction */
+}
+
+.task-edit-input:focus {
+  outline: none; /* Enlever le contour par défaut */
+  border: 2px solid #ff6f61; /* Bordure rouge corail lors du focus */
+  background-color: #9c98d0; /* Couleur légèrement plus foncée lors du focus */
+}
+
+/* Responsivité : ajuster la taille de la tâche pour les petits écrans */
+@media (max-width: 768px) {
+  .tache-container {
+    padding: 0.5rem; /* Réduction des marges pour les petits écrans */
+  }
+
+  .delete-button {
+    top: 3px; /* Décalage du bouton pour les petits écrans */
+    right: 3px;
+    font-size: 1rem; /* Réduction de la taille du bouton */
+  }
+}
