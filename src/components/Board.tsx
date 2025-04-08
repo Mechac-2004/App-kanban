@@ -1,20 +1,16 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   DndContext,
-  DragEndEvent,
   DragOverlay,
-  DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
-  useDroppable,
   closestCenter,
 } from "@dnd-kit/core";
-import { arrayMove, SortableContext } from "@dnd-kit/sortable";
+import { SortableContext } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
 
 import PlusIcon from "../icons/PlusIcon";
-import TrashIcon from "../icons/TrashIcon.tsx";
 import ColumnContainer from "./ColumnContainer";
 import { Column, Task, Id } from "./Types";
 import "./Board.css";
@@ -23,107 +19,141 @@ function Board() {
   const [columns, setColumns] = useState<Column[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensor = useSensor(PointerSensor, {
-    activationConstraint: {
-      distance: 3,
-    },
+    activationConstraint: { distance: 3 },
   });
   const sensors = useSensors(sensor);
+
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
-  const generateId = (): string => Math.floor(Math.random() * 10001).toString();
-
-  const deleteColumn = (id: Id) => {
-    setColumns(columns.filter((col) => col.id !== id));
-    setTasks(tasks.filter((task) => task.columnId !== id));
-  };
-
-  const updateColumn = (id: Id, title: string) => {
-    const newColumns = columns.map((col) =>
-      col.id === id ? { ...col, title } : col
-    );
-    setColumns(newColumns);
-  };
-
-  const createNewColumn = () => {
-    const newCol: Column = {
-      id: generateId(),
-      title: `Colonne ${columns.length + 1}`,
+  // Récupération des colonnes et tâches depuis l'API
+  useEffect(() => {
+    const fetchColumns = async () => {
+      try {
+        const response = await fetch("/api/columns");
+        const data = await response.json();
+        setColumns(data);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des colonnes :", error);
+      }
     };
-    setColumns([...columns, newCol]);
-  };
 
-  const createTask = (columnId: Id) => {
-    const newTask: Task = {
-      id: generateId(),
-      columnId,
-      content: `Tâche ${tasks.length + 1}`,
+    const fetchTasks = async () => {
+      try {
+        const response = await fetch("/api/tasks");
+        const data = await response.json();
+        setTasks(data);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des tâches :", error);
+      }
     };
-    setTasks([...tasks, newTask]);
-  };
 
-  const deleteTask = (id: Id) => {
-    setTasks(tasks.filter((task) => task.id !== id));
-  };
+    fetchColumns();
+    fetchTasks();
+  }, []);
 
-  const updateTask = (id: Id, content: string) => {
-    const updated = tasks.map((t) =>
-      t.id === id ? { ...t, content } : t
-    );
-    setTasks(updated);
-  };
-
-  const onDragStart = (event: DragStartEvent) => {
-    if (event.active.data?.current?.type === "Column") {
-      setActiveColumn(event.active.data.current.column);
-    }
-
-    if (event.active.data?.current?.type === "Task") {
-      setActiveTask(event.active.data.current.task);
-    }
-  };
-
-  const onDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id;
-    const overId = over.id;
-
-    if (activeId === overId) {
-      setActiveColumn(null);
-      setActiveTask(null);
+  // Fonction pour ajouter une nouvelle colonne
+  const createNewColumn = async () => {
+    const columnName = prompt("Entrez le nom de la nouvelle colonne :");
+    if (!columnName) {
+      alert("Le nom de la colonne ne peut pas être vide.");
       return;
     }
 
-    if (active.data?.current?.type === "Column") {
-      setColumns((cols) => {
-        const oldIndex = cols.findIndex((col) => col.id === activeId);
-        const newIndex = cols.findIndex((col) => col.id === overId);
-        return arrayMove(cols, oldIndex, newIndex);
-      });
-      setActiveColumn(null);
-    }
+    const newCol: Column = {
+      id: Math.random().toString(36).substr(2, 9),
+      title: columnName,
+    };
 
-    if (active.data?.current?.type === "Task") {
-      // Deplacement de la tâche entre les colonnes
-      setTasks((prev) =>
-        prev.map((task) =>
-          task.id === activeId ? { ...task, columnId: overId } : task
-        )
-      );
-      setActiveTask(null);
+    try {
+      const response = await fetch("/api/columns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newCol),
+      });
+
+      if (response.ok) {
+        setColumns([...columns, newCol]);
+      } else {
+        console.error("Erreur lors de l'ajout de la colonne :", response.statusText);
+      }
+    } catch (error) {
+      console.error("Erreur réseau :", error);
     }
   };
+
+  // Fonction pour supprimer une colonne
+  const deleteColumn = async (id: Id) => {
+    try {
+      const response = await fetch(`/api/columns/${id}`, { method: "DELETE" });
+      if (response.ok) {
+        setColumns(columns.filter((col) => col.id !== id));
+        setTasks(tasks.filter((task) => task.columnId !== id));
+      } else {
+        console.error("Erreur lors de la suppression de la colonne :", response.statusText);
+      }
+    } catch (error) {
+      console.error("Erreur réseau :", error);
+    }
+  };
+
+  // Fonction pour mettre à jour une colonne
+  const updateColumn = async (id: Id, title: string) => {
+    try {
+      const response = await fetch(`/api/columns/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+
+      if (response.ok) {
+        setColumns(columns.map((col) => (col.id === id ? { ...col, title } : col)));
+      } else {
+        console.error("Erreur lors de la mise à jour de la colonne :", response.statusText);
+      }
+    } catch (error) {
+      console.error("Erreur réseau :", error);
+    }
+  };
+
+  // Fonction pour créer une tâche
+  const createTask = async () => {
+    const taskData = {
+      title: "Ma première tâche",
+      description: "Description de la première tâche",
+      status: "Important",
+      column_id: 1, // Assurez-vous que columnId est une valeur valide // Assurez-vous que userId est une valeur valide
+    };
+  
+    try {
+      const response = await fetch('http://localhost:5173/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(taskData),
+      });
+  
+      if (response.ok) {
+        const task = await response.json();
+        console.log('Task created successfully:', task);
+      } else {
+        const error = await response.json();
+        console.log('Error creating task:', error);
+      }
+    } catch (error) {
+      console.error('Request failed:', error);
+    }
+  };
+  
 
   return (
     <div className="board-container">
       <DndContext
         sensors={sensors}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
+        onDragStart={(event) => setActiveColumn(event.active.data.current.column)}
+        onDragEnd={() => setActiveColumn(null)}
         collisionDetection={closestCenter}
       >
         <div className="columns-wrapper">
@@ -136,13 +166,11 @@ function Board() {
                 updateColumn={updateColumn}
                 createTask={createTask}
                 tasks={tasks.filter((t) => t.columnId === col.id)}
-                deleteTask={deleteTask}
-                updateTask={updateTask}
               />
             ))}
           </SortableContext>
           {columns.length === 0 && (
-            <div style={{ color: "white", textAlign: "center", margin: "2rem auto" }}>
+            <div className="empty-message">
               Aucune colonne pour l’instant. Cliquez sur "Ajouter une colonne" pour commencer 📝
             </div>
           )}
@@ -151,21 +179,8 @@ function Board() {
             Ajouter une colonne
           </button>
         </div>
-
         {createPortal(
-          <DragOverlay>
-            {activeColumn && (
-              <ColumnContainer
-                column={activeColumn}
-                deleteColumn={deleteColumn}
-                updateColumn={updateColumn}
-                createTask={createTask}
-                tasks={tasks.filter((t) => t.columnId === activeColumn.id)}
-                deleteTask={deleteTask}
-                updateTask={updateTask}
-              />
-            )}
-          </DragOverlay>,
+          <DragOverlay>{activeColumn && <div>{activeColumn.title}</div>}</DragOverlay>,
           document.body
         )}
       </DndContext>

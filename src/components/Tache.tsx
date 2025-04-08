@@ -1,80 +1,109 @@
 import { useState } from "react";
-import { Task, Id } from "./Types";
-import TrashIcon from "../icons/TrashIcon";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import "./Tache.css";
 
-interface Props {
-  task: Task;
-  deleteTask: (id: Id) => void;
-  updateTask: (id: Id, content: string) => void;
-}
+function TaskForm() {
+  const [taskContent, setTaskContent] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("en cours");
+  const [column, setColumn] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-function Tache({ task, deleteTask, updateTask }: Props) {
-  const [mouseIsOver, setMouseIsOver] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!taskContent || !description || !status || !column) {
+      alert("Tous les champs doivent être remplis.");
+      return;
+    }
 
-  // Utilisation de useSortable pour gérer le glisser-déposer de la tâche
-  const {
-    setNodeRef,
-    attributes,
-    listeners,
-    transform,
-    transition,
-  } = useSortable({
-    id: task.id,
-    data: {
-      type: "Task",
-      task,
-    },
-  });
+    const newTask = {
+      title: taskContent,
+      description,
+      status,
+      column,
+    };
 
-  // Appliquer la transformation de style de glisser-déposer
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newTask),
+      });
+
+      if (!response.ok) {
+        throw new Error("Une erreur est survenue lors de l'enregistrement de la tâche.");
+      }
+
+      alert("Tâche ajoutée avec succès !");
+      // Réinitialiser les champs
+      setTaskContent("");
+      setDescription("");
+      setStatus("en cours");
+      setColumn("");
+    } catch (err: any) {
+      setError(err.message || "Une erreur inconnue est survenue.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div
-      ref={setNodeRef} 
-      style={style} 
-      className="tache-container"
-      onMouseEnter={() => setMouseIsOver(true)}
-      onMouseLeave={() => setMouseIsOver(false)}
-      {...attributes} 
-      {...listeners} 
-      onDoubleClick={() => setEditMode(true)} 
-    >
-      {/* Affichage du contenu de la tâche */}
-      {!editMode && task.content}
-
-      {/* Mode édition de la tâche */}
-      {editMode && (
-        <input
-          className="task-edit-input"
-          value={task.content}
-          onChange={(e) => updateTask(task.id, e.target.value)} 
-          autoFocus
-          onBlur={() => setEditMode(false)} 
-          onKeyDown={(e) => {
-            if (e.key === "Enter") setEditMode(false); 
-          }}
-        />
-      )}
-
-      {/* Bouton de suppression de la tâche, visible au survol */}
-      {mouseIsOver && (
-        <button
-          onClick={() => deleteTask(task.id)} 
-          className="delete-button"
-        >
-          <TrashIcon />
+    <div className="task-form-container">
+      <h2>Ajouter une nouvelle tâche</h2>
+      {error && <p className="error-message">{error}</p>}
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label htmlFor="taskContent">Titre de la tâche :</label>
+          <input
+            type="text"
+            id="taskContent"
+            value={taskContent}
+            onChange={(e) => setTaskContent(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="description">Description :</label>
+          <input
+            type="text"
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="status">Statut :</label>
+          <input
+            type="text"
+            id="status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="column">Colonne :</label>
+          <input
+            type="text"
+            id="column"
+            value={column}
+            onChange={(e) => setColumn(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? "En cours..." : "Ajouter la tâche"}
         </button>
-      )}
+      </form>
     </div>
   );
 }
 
-export default Tache;
+export default TaskForm;

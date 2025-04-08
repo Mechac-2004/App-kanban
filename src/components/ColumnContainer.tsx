@@ -4,17 +4,15 @@ import { CSS } from "@dnd-kit/utilities";
 import { Column, Task, Id } from "./Types";
 import TrashIcon from "../icons/TrashIcon";
 import PlusIcon from "../icons/PlusIcon";
-import Tache from "./Tache";
 import { SortableContext } from "@dnd-kit/sortable";
+import TaskForm from "./Tache";
 import "./columnContainer.css";
 
 interface Props {
   column: Column;
   deleteColumn: (id: string) => void;
   updateColumn: (id: Id, title: string) => void;
-  createTask: (columnId: Id) => void;
-  deleteTask: (id: Id) => void;
-  updateTask: (id: Id, content: string) => void;
+  createTask: (columnId: Id, taskContent: string, description: string, status: string) => void;
   tasks: Task[];
 }
 
@@ -24,10 +22,9 @@ function ColumnContainer({
   updateColumn,
   createTask,
   tasks,
-  deleteTask,
-  updateTask,
 }: Props) {
   const [editMode, setEditMode] = useState(false);
+  const [showTaskForm, setShowTaskForm] = useState(false);
 
   const {
     setNodeRef,
@@ -38,10 +35,7 @@ function ColumnContainer({
     isDragging,
   } = useSortable({
     id: column.id,
-    data: {
-      type: "Column",
-      column,
-    },
+    data: { type: "Column", column },
     disabled: editMode,
   });
 
@@ -83,24 +77,40 @@ function ColumnContainer({
       </div>
 
       <div className="task-list">
-        <SortableContext items={taskIds}>
-          {tasks.map((task) => (
-            <Tache
-              key={task.id}
-              task={task}
-              deleteTask={deleteTask}
-              updateTask={updateTask}
-            />
-          ))}
-        </SortableContext>
+      <SortableContext items={taskIds}>
+        {tasks.map((task) => (
+          <div key={task.id}>{task.content}</div> // task.id doit être unique
+        ))}
+      </SortableContext>
+
       </div>
 
       <div className="column-footer">
-        <button className="add-task-btn" onClick={() => createTask(column.id)}>
-          <PlusIcon />
+        <button
+          className="add-task-btn"
+          onClick={() => setShowTaskForm(true)}
+        >
           Ajouter une tâche
         </button>
       </div>
+
+      {showTaskForm && (
+        <div className="modal">
+          <div className="modal-content">
+            <button
+              className="close-btn"
+              onClick={() => setShowTaskForm(false)}
+            >
+              X
+            </button>
+            <TaskForm
+              createTask={(taskContent, description, status) =>
+                createTask(column.id, taskContent, description, status)
+              }
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

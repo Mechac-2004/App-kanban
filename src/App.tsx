@@ -4,6 +4,8 @@ import Login from "./components/Auth/connexion/Login";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import Header from "./components/Header";
 import Board from "./components/Board";
+import Tache from "./components/Tache";  // Chemin correct vers Tache.tsx
+
 
 import "./App.css";
 function AppContent() {
