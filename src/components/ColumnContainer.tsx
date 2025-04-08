@@ -78,9 +78,13 @@ function ColumnContainer({
 
       <div className="task-list">
       <SortableContext items={taskIds}>
-        {tasks.map((task) => (
-          <div key={task.id}>{task.content}</div> // task.id doit être unique
-        ))}
+      {tasks.map((task) => (
+  <div key={task.task_id}> 
+    {task.content}
+  </div>
+))}
+
+
       </SortableContext>
 
       </div>

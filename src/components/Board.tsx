@@ -158,16 +158,17 @@ function Board() {
       >
         <div className="columns-wrapper">
           <SortableContext items={columnsId}>
-            {columns.map((col) => (
-              <ColumnContainer
-                key={col.id}
-                column={col}
-                deleteColumn={deleteColumn}
-                updateColumn={updateColumn}
-                createTask={createTask}
-                tasks={tasks.filter((t) => t.columnId === col.id)}
-              />
-            ))}
+          {columns.map((column) => (
+  <ColumnContainer
+    key={column.column_id} 
+    column={column}
+    deleteColumn={deleteColumn}
+    updateColumn={updateColumn}
+    createTask={createTask}
+    tasks={tasks}
+  />
+))}
+
           </SortableContext>
           {columns.length === 0 && (
             <div className="empty-message">
